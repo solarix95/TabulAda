@@ -20,7 +20,10 @@ public:
     void init();
 
 private:
-    QWidget *createSheetView(int index);
+    QWidget *createSheetView(AdaSheet *sheet);
+    void applyToSelection(const QVariant &value, int role);
+    void setupMenu();
+    void setupToolbar();
 
     Ui::MainWindow *ui;
 

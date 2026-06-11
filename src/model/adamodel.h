@@ -17,9 +17,11 @@ public:
     AdaSheet *sheet(int index);
 
     void appendNewSheet();
+    void removeSheet(int index);
 
 signals:
     void sheetCreated(int index);
+    void sheetAboutToBeRemoved(int index);
 
 private:
     QList<AdaSheet*> mSheets;

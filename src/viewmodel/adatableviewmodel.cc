@@ -1,6 +1,7 @@
 #include "viewmodel/adatableviewmodel.h"
 #include "model/adasheet.h"
 
+//-------------------------------------------------------------------------------------------------
 AdaTableViewModel::AdaTableViewModel(AdaSheet *sheet, QObject *parent)
     : QAbstractTableModel(parent),
       mSheet(sheet)
@@ -17,6 +18,7 @@ AdaTableViewModel::AdaTableViewModel(AdaSheet *sheet, QObject *parent)
     });
 }
 
+//-------------------------------------------------------------------------------------------------
 int AdaTableViewModel::rowCount(const QModelIndex &parent) const
 {
     if (parent.isValid())
@@ -24,6 +26,7 @@ int AdaTableViewModel::rowCount(const QModelIndex &parent) const
     return mSheet->rowCount();
 }
 
+//-------------------------------------------------------------------------------------------------
 int AdaTableViewModel::columnCount(const QModelIndex &parent) const
 {
     if (parent.isValid())
@@ -31,6 +34,7 @@ int AdaTableViewModel::columnCount(const QModelIndex &parent) const
     return mSheet->columnCount();
 }
 
+//-------------------------------------------------------------------------------------------------
 Qt::ItemFlags AdaTableViewModel::flags(const QModelIndex &index) const
 {
     if (!index.isValid())
@@ -38,6 +42,7 @@ Qt::ItemFlags AdaTableViewModel::flags(const QModelIndex &index) const
     return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
 }
 
+//-------------------------------------------------------------------------------------------------
 QVariant AdaTableViewModel::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid())
@@ -58,17 +63,21 @@ QVariant AdaTableViewModel::data(const QModelIndex &index, int role) const
         return cell->bgColor().isValid() ? QVariant(cell->bgColor()) : QVariant();
     case Qt::ForegroundRole:
         return cell->fgColor().isValid() ? QVariant(cell->fgColor()) : QVariant();
+    case Qt::TextAlignmentRole:
+        return cell->hasAlignment() ? QVariant(int(cell->alignment())) : QVariant();
     }
 
     return QVariant();
 }
 
+//-------------------------------------------------------------------------------------------------
 bool AdaTableViewModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
     if (!index.isValid())
         return false;
     if (role != Qt::EditRole && role != Qt::FontRole
-            && role != Qt::BackgroundRole && role != Qt::ForegroundRole)
+            && role != Qt::BackgroundRole && role != Qt::ForegroundRole
+            && role != Qt::TextAlignmentRole)
         return false;
 
     const bool hasNewInformation =
@@ -100,6 +109,9 @@ bool AdaTableViewModel::setData(const QModelIndex &index, const QVariant &value,
     case Qt::ForegroundRole:
         cell->setFgColor(value.isValid() ? qvariant_cast<QColor>(value) : QColor());
         break;
+    case Qt::TextAlignmentRole:
+        cell->setAlignment(Qt::Alignment(value.toInt()));
+        break;
     }
 
     if (!cell->hasInformation())
@@ -107,6 +119,7 @@ bool AdaTableViewModel::setData(const QModelIndex &index, const QVariant &value,
     return true;
 }
 
+//-------------------------------------------------------------------------------------------------
 QVariant AdaTableViewModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if (role != Qt::DisplayRole)
@@ -131,6 +144,7 @@ void AdaTableViewModel::observeCell(int row, int column, AdaCell *cell)
         emit dataChanged(changedIndex, changedIndex,
                          QVector<int>() << Qt::DisplayRole << Qt::EditRole
                                         << Qt::FontRole << Qt::BackgroundRole
-                                        << Qt::ForegroundRole);
+                                        << Qt::ForegroundRole
+                                        << Qt::TextAlignmentRole);
     });
 }

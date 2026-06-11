@@ -6,10 +6,13 @@ TEMPLATE = app
 TARGET = tabulada
 INCLUDEPATH += .
 
-
 QT += widgets
 
 DEFINES += QT_DEPRECATED_WARNINGS
+
+NEOADA_PATH = ../../NeoAda/libneoada
+include(../../NeoAda/libneoada/libneoada.pro)
+include(../../NeoAda/neoada-edit-qt/neocodeedit.pro)
 
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
@@ -20,7 +23,8 @@ SOURCES += main.cc \
     model/adamodel.cc \
     model/adacell.cc \
     view/adatableview.cpp \
-    viewmodel/adatableviewmodel.cc
+    viewmodel/adatableviewmodel.cc \
+    view/iconfactory.cc
 
 FORMS += \
     mainwindow.ui
@@ -31,4 +35,5 @@ HEADERS += \
     model/adamodel.h \
     model/adacell.h \
     view/adatableview.h \
-    viewmodel/adatableviewmodel.h
+    viewmodel/adatableviewmodel.h \
+    view/iconfactory.h

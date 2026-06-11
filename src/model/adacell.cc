@@ -2,7 +2,8 @@
 
 AdaCell::AdaCell(QObject *parent)
     : QObject(parent),
-      mHasFont(false)
+      mHasFont(false),
+      mHasAlignment(false)
 {
 }
 
@@ -84,10 +85,31 @@ void AdaCell::setFgColor(const QColor &color)
     emit changed();
 }
 
+bool AdaCell::hasAlignment() const
+{
+    return mHasAlignment;
+}
+
+Qt::Alignment AdaCell::alignment() const
+{
+    return mAlignment;
+}
+
+void AdaCell::setAlignment(Qt::Alignment alignment)
+{
+    if (mHasAlignment && mAlignment == alignment)
+        return;
+
+    mAlignment = alignment;
+    mHasAlignment = true;
+    emit changed();
+}
+
 bool AdaCell::hasInformation() const
 {
     return (mValue.isValid() && !mValue.toString().isEmpty())
             || mHasFont
             || mBgColor.isValid()
-            || mFgColor.isValid();
+            || mFgColor.isValid()
+            || mHasAlignment;
 }

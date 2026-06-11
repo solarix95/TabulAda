@@ -29,6 +29,10 @@ public:
     QColor fgColor() const;
     void setFgColor(const QColor &color);
 
+    bool hasAlignment() const;
+    Qt::Alignment alignment() const;
+    void setAlignment(Qt::Alignment alignment);
+
     bool hasInformation() const;
 
 signals:
@@ -40,7 +44,9 @@ private:
     QFont mFont;
     QColor mBgColor;
     QColor mFgColor;
+    Qt::Alignment mAlignment;
     bool mHasFont;
+    bool mHasAlignment;
 };
 
 #endif // ADACELL_H

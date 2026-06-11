@@ -29,3 +29,12 @@ void AdaModel::appendNewSheet()
     mSheets << sheet;
     emit sheetCreated(mSheets.count() - 1);
 }
+
+//-------------------------------------------------------------------------------------------------
+void AdaModel::removeSheet(int index)
+{
+    Q_ASSERT(index >= 0 && index < mSheets.count());
+
+    emit sheetAboutToBeRemoved(index);
+    delete mSheets.takeAt(index);
+}
