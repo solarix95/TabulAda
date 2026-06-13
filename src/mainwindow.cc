@@ -8,6 +8,7 @@
 #include <QMenuBar>
 #include <QToolBar>
 #include <QToolButton>
+#include <QUndoStack>
 #include <QVBoxLayout>
 
 #include "mainwindow.h"
@@ -16,11 +17,13 @@
 #include "view/adatableview.h"
 #include "view/iconfactory.h"
 #include "viewmodel/adatableviewmodel.h"
+#include "viewmodel/adatableproxymodel.h"
 
 //-------------------------------------------------------------------------------------------------
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    mUndoGroup(this)
 {
     ui->setupUi(this);
 }
@@ -39,6 +42,7 @@ void MainWindow::init()
 
     connect(&mModel, &AdaModel::sheetCreated, this, [this](int index) {
         AdaSheet *sheet = mModel.sheet(index);
+        mUndoGroup.addStack(sheet->undoStack());
         QWidget *sheetView = createSheetView(sheet);
         const int tabIndex = ui->tabWidget->addTab(sheetView, sheet->name());
         ui->tabWidget->setCurrentIndex(tabIndex);
@@ -56,8 +60,18 @@ void MainWindow::init()
         delete sheetView;
     });
 
+    connect(&mModel, &AdaModel::sheetRemoved, this, [this](int) {
+        if (mModel.count() == 0)
+            mModel.appendNewSheet();
+    });
+
     connect(ui->tabWidget, &QTabWidget::tabCloseRequested,
             &mModel, &AdaModel::removeSheet);
+
+    connect(ui->tabWidget, &QTabWidget::currentChanged, this, [this](int index) {
+        mUndoGroup.setActiveStack(index >= 0 && index < mModel.count()
+                                  ? mModel.sheet(index)->undoStack() : nullptr);
+    });
 
     auto *newSheetButton = new QToolButton(ui->tabWidget);
     newSheetButton->setText(QStringLiteral("+"));
@@ -74,10 +88,13 @@ QWidget *MainWindow::createSheetView(AdaSheet *sheet)
 {
     auto *baseWidget = new QWidget(ui->tabWidget);
     auto *layout     = new QVBoxLayout(baseWidget);
-    auto *tableView  = new AdaTableView(baseWidget);
+    auto *tableView  = new AdaTableView(sheet, baseWidget);
     auto *viewModel  = new AdaTableViewModel(sheet, tableView);
+    auto *proxyModel = new AdaTableProxyModel(sheet);
 
-    tableView->setModel(viewModel);
+    proxyModel->setSourceModel(viewModel);
+    tableView->setModel(proxyModel);
+    tableView->refreshSpans();
 
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(tableView);
@@ -96,8 +113,15 @@ void MainWindow::applyToSelection(const QVariant &value, int role)
     if (indexes.isEmpty() && tableView->currentIndex().isValid())
         indexes << tableView->currentIndex();
 
+    const int sheetIndex = ui->tabWidget->currentIndex();
+    QUndoStack *undoStack = sheetIndex >= 0 && sheetIndex < mModel.count()
+            ? mModel.sheet(sheetIndex)->undoStack() : nullptr;
+    if (undoStack)
+        undoStack->beginMacro(tr("Formatierung ändern"));
     for (const QModelIndex &index : indexes)
         tableView->model()->setData(index, value, role);
+    if (undoStack)
+        undoStack->endMacro();
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -107,6 +131,14 @@ void MainWindow::setupMenu()
     QAction *quitAction = fileMenu->addAction(tr("&Quit"));
     quitAction->setShortcut(QKeySequence::Quit);
     connect(quitAction, &QAction::triggered, this, &QWidget::close);
+
+    QMenu *editMenu = menuBar()->addMenu(tr("&Bearbeiten"));
+    QAction *undoAction = mUndoGroup.createUndoAction(editMenu, tr("&Rückgängig"));
+    undoAction->setShortcut(QKeySequence::Undo);
+    editMenu->addAction(undoAction);
+    QAction *redoAction = mUndoGroup.createRedoAction(editMenu, tr("&Wiederholen"));
+    redoAction->setShortcuts(QKeySequence::Redo);
+    editMenu->addAction(redoAction);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -195,4 +227,21 @@ void MainWindow::setupToolbar()
             applyToSelection(int(item.alignment), Qt::TextAlignmentRole);
         });
     }
+    toolbar->addSeparator();
+    QAction *mergeAction = toolbar->addAction(
+            IconFactory::create(IconFactory::MergeCells), tr("Zellen verbinden"));
+    connect(mergeAction, &QAction::triggered, this, [this]() {
+        QWidget *page = ui->tabWidget->currentWidget();
+        auto *tableView = page ? page->findChild<AdaTableView *>() : nullptr;
+        if (tableView)
+            tableView->mergeSelection();
+    });
+    QAction *demergeAction = toolbar->addAction(
+            IconFactory::create(IconFactory::SplitCells), tr("Zellverbund aufheben"));
+    connect(demergeAction, &QAction::triggered, this, [this]() {
+        QWidget *page = ui->tabWidget->currentWidget();
+        auto *tableView = page ? page->findChild<AdaTableView *>() : nullptr;
+        if (tableView)
+            tableView->demergeSelection();
+    });
 }

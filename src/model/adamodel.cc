@@ -37,4 +37,5 @@ void AdaModel::removeSheet(int index)
 
     emit sheetAboutToBeRemoved(index);
     delete mSheets.takeAt(index);
+    emit sheetRemoved(index);
 }

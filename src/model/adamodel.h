@@ -22,6 +22,7 @@ public:
 signals:
     void sheetCreated(int index);
     void sheetAboutToBeRemoved(int index);
+    void sheetRemoved(int index);
 
 private:
     QList<AdaSheet*> mSheets;

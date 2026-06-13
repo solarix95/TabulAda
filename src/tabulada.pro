@@ -22,7 +22,9 @@ SOURCES += main.cc \
     model/adasheet.cc \
     model/adamodel.cc \
     model/adacell.cc \
+    scripting/adasccript.cc \
     view/adatableview.cpp \
+    viewmodel/adatableproxymodel.cc \
     viewmodel/adatableviewmodel.cc \
     view/iconfactory.cc
 
@@ -34,6 +36,8 @@ HEADERS += \
     model/adasheet.h \
     model/adamodel.h \
     model/adacell.h \
+    scripting/adasccript.h \
     view/adatableview.h \
+    viewmodel/adatableproxymodel.h \
     viewmodel/adatableviewmodel.h \
     view/iconfactory.h

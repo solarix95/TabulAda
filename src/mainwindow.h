@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QUndoGroup>
 #include "model/adamodel.h"
 
 namespace Ui {
@@ -27,6 +28,7 @@ private:
 
     Ui::MainWindow *ui;
 
+    QUndoGroup mUndoGroup;
     AdaModel mModel;
 };
 

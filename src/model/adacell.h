@@ -32,6 +32,11 @@ public:
     bool hasAlignment() const;
     Qt::Alignment alignment() const;
     void setAlignment(Qt::Alignment alignment);
+    void clearAlignment();
+
+    int rowSpan() const;
+    int columnSpan() const;
+    void setSpan(int rowSpan, int columnSpan);
 
     bool hasInformation() const;
 
@@ -45,6 +50,8 @@ private:
     QColor mBgColor;
     QColor mFgColor;
     Qt::Alignment mAlignment;
+    int mRowSpan;
+    int mColumnSpan;
     bool mHasFont;
     bool mHasAlignment;
 };
